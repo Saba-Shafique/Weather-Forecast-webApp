@@ -1,35 +1,92 @@
 import React, { useState } from 'react';
+import axios from 'axios';
 import { FaSun, FaCloud, FaCloudSun, FaCloudRain } from 'react-icons/fa';
 import bgClouds from '../imgs/bgClouds.jpg';
 
 const WeatherApp = () => {
-    const [city, setCity] = useState("New York");
+    const [city, setCity] = useState("");  // City being typed in search bar
+    const [searchedCity, setSearchedCity] = useState("New York");  // Displayed city after search
     const [weather, setWeather] = useState({
         temp: 17,
         description: "clear sky",
         icon: "01d", // sunny icon
     });
+    const [forecast, setForecast] = useState([]); // State for the forecast
 
-    const forecast = [
-        { day: "Wednesday", temp: 21, icon: "01d" }, // sunny
-        { day: "Thursday", temp: 24, icon: "03d" }, // cloudy
-        { day: "Friday", temp: 21, icon: "01d" }, // sunny
-        { day: "Saturday", temp: 24, icon: "02d" }, // partly cloudy
-    ];
+    const API_KEY = 'b8d06af3bdb96acfeca17bdf918b74fa';  // Replace with your OpenWeatherMap API key
+
+    // Function to fetch real-time weather and forecast data
+    const fetchWeatherData = async (cityName) => {
+        try {
+            // Fetch current weather
+            const currentWeatherResponse = await axios.get(
+                `https://api.openweathermap.org/data/2.5/weather?q=${cityName}&appid=${API_KEY}&units=metric`
+            );
+            const currentWeatherData = currentWeatherResponse.data;
+            setWeather({
+                temp: currentWeatherData.main.temp,
+                description: currentWeatherData.weather[0].description,
+                icon: currentWeatherData.weather[0].icon,
+            });
+            setSearchedCity(cityName);  // Update displayed city name
+
+            // Fetch 5-day forecast
+            const forecastResponse = await axios.get(
+                `https://api.openweathermap.org/data/2.5/forecast?q=${cityName}&appid=${API_KEY}&units=metric`
+            );
+            const forecastData = forecastResponse.data.list;
+
+            // Process forecast to get one entry per day
+            const dailyForecast = [];
+            for (let i = 0; i < forecastData.length; i += 8) { // Every 8th entry corresponds to a new day (3-hour intervals)
+                const dayData = forecastData[i];
+                dailyForecast.push({
+                    day: new Date(dayData.dt_txt).toLocaleDateString('en-US', { weekday: 'long' }),
+                    temp: Math.round(dayData.main.temp),
+                    icon: dayData.weather[0].icon,
+                });
+            }
+            setForecast(dailyForecast.slice(0, 4)); // Get the forecast for the next 4 days
+        } catch (error) {
+            console.error("Error fetching weather data:", error);
+        }
+    };
+
+    // Handle search and fetch weather data
+    const handleSearch = () => {
+        if (city.trim() !== "") {
+            fetchWeatherData(city);
+        }
+    };
+
+    // Trigger search on Enter key press using onKeyDown
+    const handleKeyDown = (e) => {
+        if (e.key === 'Enter') {
+            handleSearch();
+        }
+    };
 
     return (
         <div className="min-h-screen flex flex-col items-center bg-cover" style={{ backgroundImage: `url(${bgClouds})` }}>
             {/* Search Bar */}
             <input
                 type="text"
-                placeholder="Enter a City..."
+                placeholder="Enter a city..."
                 className="w-80 p-2 mt-10 mb-6 border rounded-lg text-center outline-none"
                 value={city}
-                onChange={(e) => setCity(e.target.value)}
+                onChange={(e) => setCity(e.target.value)}  // Update typed city
+                onKeyDown={handleKeyDown}  // Trigger search on Enter key
             />
+            {/* Search Button */}
+            <button 
+                onClick={handleSearch} 
+                className="px-4 py-2 bg-blue-500 text-white rounded-lg mt-2"
+            >
+                Search
+            </button>
 
             {/* Weather Display Box */}
-            <div className="bg-white/70 p-8 rounded-3xl shadow-lg max-w-md w-full text-center">
+            <div className="bg-white/50 p-8 rounded-3xl shadow-lg max-w-md w-full text-center mt-4">
                 
                 {/* Current Weather Display */}
                 <div className="text-7xl mb-2">
@@ -45,7 +102,7 @@ const WeatherApp = () => {
                         <FaSun className="text-yellow-500" />
                     )}
                 </div>
-                <h2 className="text-3xl font-bold">{city}</h2>
+                <h2 className="text-3xl font-bold">{searchedCity}</h2> {/* Display the searched city */}
                 <p className="text-lg mt-2">Temperature: {weather.temp}°C</p>
                 <p className="text-gray-600 capitalize">{weather.description}</p>
 
