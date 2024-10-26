@@ -12,16 +12,25 @@ const WeatherApp = () => {
         icon: "01d", // sunny icon
     });
     const [forecast, setForecast] = useState([]); // State for the forecast
+    const [error, setError] = useState("");  // State for error message
 
     const API_KEY = 'b8d06af3bdb96acfeca17bdf918b74fa';  // Replace with your OpenWeatherMap API key
 
     // Function to fetch real-time weather and forecast data
     const fetchWeatherData = async (cityName) => {
         try {
+            // Clear previous error message
+            setError("");
+
             // Fetch current weather
             const currentWeatherResponse = await axios.get(
                 `https://api.openweathermap.org/data/2.5/weather?q=${cityName}&appid=${API_KEY}&units=metric`
             );
+
+            if (currentWeatherResponse.data.cod !== 200) {
+                throw new Error("City not found");
+            }
+
             const currentWeatherData = currentWeatherResponse.data;
             setWeather({
                 temp: currentWeatherData.main.temp,
@@ -34,6 +43,7 @@ const WeatherApp = () => {
             const forecastResponse = await axios.get(
                 `https://api.openweathermap.org/data/2.5/forecast?q=${cityName}&appid=${API_KEY}&units=metric`
             );
+
             const forecastData = forecastResponse.data.list;
 
             // Process forecast to get one entry per day
@@ -48,6 +58,7 @@ const WeatherApp = () => {
             }
             setForecast(dailyForecast.slice(0, 4)); // Get the forecast for the next 4 days
         } catch (error) {
+            setError("City does not exist. Please enter a valid city name.");
             console.error("Error fetching weather data:", error);
         }
     };
@@ -77,13 +88,9 @@ const WeatherApp = () => {
                 onChange={(e) => setCity(e.target.value)}  // Update typed city
                 onKeyDown={handleKeyDown}  // Trigger search on Enter key
             />
-            {/* Search Button */}
-            <button 
-                onClick={handleSearch} 
-                className="px-4 py-2 bg-blue-500 text-white rounded-lg mt-2"
-            >
-                Search
-            </button>
+
+            {/* Error Message */}
+            {error && <p className="text-red-500 mt-2">{error}</p>}
 
             {/* Weather Display Box */}
             <div className="bg-white/50 p-8 rounded-3xl shadow-lg max-w-md w-full text-center mt-4">
