@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 import { FaSun, FaCloud, FaCloudSun, FaCloudRain } from 'react-icons/fa';
-import bgClouds from '../imgs/bgClouds.jpg'; // Ensure the background image is linked correctly.
+
+import bgClouds from '../imgs/bgClouds.jpg'; 
 
 const WeatherApp = () => {
     const [city, setCity] = useState("");  
@@ -70,11 +71,12 @@ const WeatherApp = () => {
 
     return (
         <div className="min-h-screen flex flex-col items-center bg-cover bg-center" style={{ backgroundImage: `url(${bgClouds})` }}>
+            
             {/* Search Bar */}
             <input
                 type="text"
                 placeholder="Enter a city..."
-                className="w-80 p-4 mt-10 mb-6 border rounded-full text-center shadow-lg outline-none bg-white"
+                className="w-80 sm:w-96 p-4 mt-10 mb-6 border rounded-full text-center shadow-lg outline-none bg-white"
                 value={city}
                 onChange={(e) => setCity(e.target.value)}
                 onKeyDown={handleKeyDown}
@@ -84,10 +86,9 @@ const WeatherApp = () => {
             {error && <p className="text-red-500 mt-2">{error}</p>}
 
             {/* Weather Display Box */}
-            <div className="bg-white/50 p-6 rounded-3xl shadow-lg text-center" style={{ width: '63%' }}>
+            <div className="bg-white/50 p-6 rounded-3xl shadow-lg text-center w-full sm:w-11/12 md:w-3/4 lg:w-2/3">
                 {/* Current Weather Display */}
-                <div className="flex items-center justify-center mb-12 mt-12 space-x-40">
-                    {/* Weather Icon */}
+                <div className="flex flex-col md:flex-row items-center justify-center mb-12 mt-12 md:space-x-20 space-y-6 md:space-y-0">
                     <div className="text-8xl">
                         {weather.icon === "01d" ? (
                             <FaSun className="text-yellow-500" />
@@ -101,18 +102,16 @@ const WeatherApp = () => {
                             <FaSun className="text-yellow-500" />
                         )}
                     </div>
-
-                    {/* City Name, Temperature and Description */}
                     <div className="text-left ml-1">
                         <p className="text-lg mt-2">Today</p>
-                        <h2 className="text-5xl font-bold mb-3">{searchedCity}</h2>
+                        <h2 className="text-4xl md:text-5xl font-bold mb-3">{searchedCity}</h2>
                         <p className="text-lg mt-2">Temperature: {weather.temp}°C</p>
                         <p className="text-gray-600 capitalize">{weather.description}</p>
                     </div>
                 </div>
 
                 {/* Four-Day Forecast */}
-                <div className="grid grid-cols-4 gap-2 mt-6">
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-6">
                     {forecast.map((day, index) => (
                         <div key={index} className="bg-white/80 p-4 rounded-lg shadow-md text-center">
                             <p className="text-sm font-semibold">{day.day}</p>
